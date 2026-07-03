@@ -1,0 +1,9 @@
+packages_standard:
+  - mc
+  - nano
+  - vim
+  - zip
+  - unzip
+
+packages_epel:
+  - htop
