@@ -1,0 +1,26 @@
+
+Port {{ sshd_port }}
+
+#SyslogFacility AUTH
+LogLevel {{ sshd_loglevel }}
+
+LoginGraceTime {{ sshd_logingracetime }}
+PermitRootLogin {{ sshd_permitrootlogin }}
+MaxAuthTries {{ sshd_maxauthtries }}
+MaxSessions {{ sshd_maxsessions }}
+PubkeyAuthentication {{ sshd_pubkeyauthentication }}
+PasswordAuthentication {{ sshd_passwordauthentication }}
+PermitEmptyPasswords {{ sshd_permitemptypasswords }}
+KbdInteractiveAuthentication {{ sshd_kbdinteractiveauthentication }}
+
+#AllowAgentForwarding yes
+#AllowTcpForwarding yes
+#GatewayPorts no
+X11Forwarding {{ sshd_x11forwarding }}
+#PrintMotd yes
+#TCPKeepAlive yes
+#ClientAliveInterval 0
+#ClientAliveCountMax 3
+UseDNS {{ sshd_usedns }}
+MaxStartups {{ sshd_maxstartups }}
+#PermitTunnel no

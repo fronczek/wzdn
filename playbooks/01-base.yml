@@ -5,3 +5,4 @@
     - role: selinux
     - role: packages
     - role: iptables
+    - role: sshd
