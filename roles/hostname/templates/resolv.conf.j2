@@ -1,0 +1,10 @@
+{% if (inventory_hostname | get_domain) | length > 1 %}
+domain {{ inventory_hostname | get_domain }}
+{%endif%}
+search {{ hostname_resolvconf.search | join(' ') }}
+
+options timeout:{{ hostname_resolvconf.timeout | default(3) }}
+options attempts:{{ hostname_resolvconf.attempts | default(3) }}
+{% for ns in hostname_resolvconf.nameservers %}
+nameserver {{ ns }}
+{% endfor %}

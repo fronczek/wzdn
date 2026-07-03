@@ -1,0 +1,16 @@
+- name: Reboot
+  ansible.builtin.reboot:
+    reboot_timeout: 900
+    msg: "Ansible initiated reboot"
+
+- name: Restart network
+  ansible.builtin.service:
+    name: networking
+    state: restarted
+  when: ansible_facts['services']['networking'] is defined
+
+- name: Restart systemd-resolved
+  ansible.builtin.service:
+    name: systemd-resolved
+    state: restarted
+  when: ansible_facts['services']['systemd-resolved.service'] is defined

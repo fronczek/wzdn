@@ -1,0 +1,57 @@
+---
+- name: Gather service facts
+  ansible.builtin.service_facts:
+
+- name: Set hostname
+  ansible.builtin.hostname:
+    name: "{{ inventory_hostname_short }}"
+  notify: Reboot
+  become: true
+
+- name: Template hosts file
+  ansible.builtin.template:
+    src: hosts.j2
+    dest: /etc/hosts
+    mode: '0644'
+  become: true
+
+- name: Template hostname file
+  ansible.builtin.template:
+    src: hostname.j2
+    dest: /etc/hostname
+    mode: '0644'
+  become: true
+
+- name: Check if resolvconf is a symlink
+  ansible.builtin.stat:
+    path: /etc/resolv.conf
+  register: hostname_resolvconf_stat
+
+- name: Template resolv.conf file
+  ansible.builtin.template:
+    src: resolv.conf.j2
+    dest: /etc/resolv.conf
+    mode: '0644'
+  become: true
+  when:
+    - hostname_resolvconf is defined
+    - hostname_resolvconf_stat.stat.exists | bool
+    - not hostname_resolvconf_stat.stat.islnk | bool
+  notify: Restart network
+
+- name: Template resolved.conf file
+  ansible.builtin.template:
+    src: resolved.conf.j2
+    dest: /etc/systemd/resolved.conf.d/ansible.conf
+    mode: '0644'
+  become: true
+  when:
+    - hostname_resolvconf is defined
+    - hostname_resolvconf_stat.stat.exists | bool
+    - hostname_resolvconf_stat.stat.islnk | bool
+    - hostname_resolvconf_stat.stat.lnk_target == '/run/systemd/resolve/resolv.conf'
+  notify: Restart systemd-resolved
+
+- name: Flush handlers
+  ansible.builtin.meta: flush_handlers
+  become: true
