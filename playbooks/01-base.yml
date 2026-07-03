@@ -1,0 +1,5 @@
+- name: Base OS
+  hosts: all
+  roles:
+    - role: hostname
+    - role: selinux

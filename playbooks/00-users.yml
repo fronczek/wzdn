@@ -1,0 +1,7 @@
+- name: Create standard users
+  hosts: all
+  vars:
+    ansible_user: root
+    ansible_password: "{{ factory_root_passwd }}"
+  roles:
+    - role: users
