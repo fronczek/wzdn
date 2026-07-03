@@ -1,0 +1,12 @@
+- name: Ensure required SELinux packages are present
+  become: true
+  ansible.builtin.package:
+    name: "{{ selinux_packages }}"
+    state: present
+
+- name: Enable and set SELinux state
+  become: true
+  ansible.posix.selinux:
+    policy: "{{ selinux_policy }}"
+    state: "{{ selinux_state }}"
+  notify: Reboot
