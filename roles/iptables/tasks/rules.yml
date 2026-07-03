@@ -89,7 +89,7 @@
     comment: "{{ item.comment | default(omit) }}"
     jump: "{{ item.jump }}"
   with_items:
-    - { chain: INPUT, src: '{{ ansible_facts["default_ipv4"]["network"] }}/{{ ansible_facts["default_ipv4"]["prefix"] }}', jump: ACCEPT, comment: 'Allow local subnet' }
+    # - { chain: INPUT, src: '{{ ansible_facts["default_ipv4"]["network"] }}/{{ ansible_facts["default_ipv4"]["prefix"] }}', jump: ACCEPT, comment: 'Allow local subnet' }
     - "{{ iptables_global_rules | default([]) }}"
     - "{{ iptables_group_rules | default([]) }}"
     - "{{ iptables_host_rules | default([]) }}"
