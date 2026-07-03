@@ -2,3 +2,8 @@ hosts_static_entries:
   - { ip: 172.16.11.171, aliases: [ol9a] }
   - { ip: 172.16.11.172, aliases: [ol9b] }
   - { ip: 172.16.11.173, aliases: [ol9c] }
+
+iptables_enabled: true
+
+iptables_global_rules:
+  - { chain: INPUT, proto: tcp, port: 22, src: "172.16.0.0/12", jump: ACCEPT }

@@ -4,3 +4,4 @@
     - role: hostname
     - role: selinux
     - role: packages
+    - role: iptables

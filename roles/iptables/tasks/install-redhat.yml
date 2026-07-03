@@ -1,0 +1,21 @@
+---
+- name: Install a iptables packages (RedHat 7 and above)
+  become: true
+  ansible.builtin.package:
+    name: ['iptables', 'iptables-services']
+    state: present
+  when: ansible_facts['distribution_major_version'] >= '7'
+
+- name: Install a iptables packages (RedHat 6)
+  become: true
+  ansible.builtin.package:
+    name: "iptables"
+    state: present
+  when: ansible_facts['distribution_major_version'] == '6'
+
+- name: Enable iptables service
+  become: true
+  ansible.builtin.service:
+    name: iptables
+    enabled: true
+    state: restarted

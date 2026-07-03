@@ -1,0 +1,14 @@
+---
+- name: Stop and disable firewalld
+  become: true
+  ansible.builtin.service:
+    name: firewalld
+    enabled: false
+    state: stopped
+  when: ansible_facts.services['firewalld.service']['state'] == "running" or ansible_facts.services['firewalld.service']['state'] == "started"
+
+- name: Uninstall firewalld package
+  become: true
+  ansible.builtin.package:
+    name: firewalld
+    state: absent

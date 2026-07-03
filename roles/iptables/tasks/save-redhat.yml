@@ -1,0 +1,11 @@
+---
+- name: Check that the /etc/sysconfig/iptables exists (RedHat)
+  stat:
+    path: /etc/sysconfig/iptables
+  register: stat_ipt_redhat_result
+
+- name: Make iptables persistent (RedHat)
+  become: true
+  shell: iptables-save > /etc/sysconfig/iptables
+  environment:
+    PATH: '$PATH:/usr/sbin:/sbin'

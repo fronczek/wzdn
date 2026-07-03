@@ -1,0 +1,41 @@
+---
+
+- name: Check that the /etc/iptables/rules.v4 exists (Debian)
+  stat:
+    path: /etc/iptables/rules.v4
+  register: stat_ipt_debian_result
+
+- name: Check that the /etc/iptables/rules.v6 exists (Debian)
+  stat:
+    path: /etc/iptables/rules.v6
+  register: stat_ipt6_debian_result
+
+- name: Make iptables persistent (Debian)
+  become: true
+  shell: iptables-save > /etc/iptables/rules.v4
+  when: ansible_os_family|lower == 'debian' and stat_ipt_debian_result.stat.exists | bool
+
+- name: Make ip6tables persistent (Debian)
+  become: true
+  shell: ip6tables-save > /etc/iptables/rules.v6
+  when: ansible_os_family|lower == 'debian' and stat_ipt6_debian_result.stat.exists | bool
+
+- name: Check that the /etc/sysconfig/iptables exists (RedHat)
+  stat:
+    path: /etc/sysconfig/iptables
+  register: stat_ipt_centos_result
+
+- name: Check that the /etc/sysconfig/ip6tables exists (RedHat)
+  stat:
+    path: /etc/sysconfig/ip6tables
+  register: stat_ipt6_centos_result
+
+- name: Make iptables persistent (RedHat)
+  become: true
+  shell: iptables-save > /etc/sysconfig/iptables
+  when: ansible_os_family | lower == 'redhat' and stat_ipt_centos_result.stat.exists | bool
+
+- name: Make ip6tables persistent (RedHat)
+  become: true
+  shell: ip6tables-save > /etc/sysconfig/ip6tables
+  when: ansible_os_family | lower == 'redhat' and stat_ipt6_centos_result.stat.exists | bool

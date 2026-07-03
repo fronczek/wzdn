@@ -1,0 +1,29 @@
+---
+
+- name: Remove firewalld
+  include_tasks: uninstall_firewalld.yml
+  when:
+    - iptables_uninstall_firewalld
+    - ansible_facts.services['firewalld.service'] is defined
+
+- name: Remove nftables
+  include_tasks: uninstall_nftables.yml
+  when:
+    - iptables_uninstall_nftables
+    - ansible_facts.services['nftables.service'] is defined
+
+- name: Installing iptables
+  include_tasks: "install-{{ ansible_facts['os_family'] | lower }}.yml"
+
+- name: Setup rules
+  import_tasks: rules.yml
+
+- name: Saving iptables rules
+  include_tasks: "save-{{ ansible_facts['os_family'] | lower }}.yml"
+
+- name: Restart fail2ban service
+  ansible.builtin.service:
+    name: fail2ban
+    state: restarted
+    enabled: true
+  when: ansible_facts.services['fail2ban.service'] is defined and ansible_facts.services['fail2ban.service']['status'] == "enabled"

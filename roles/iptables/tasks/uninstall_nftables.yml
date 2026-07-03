@@ -1,0 +1,14 @@
+---
+- name: Stop and disable nftables
+  become: true
+  ansible.builtin.service:
+    name: nftables
+    enabled: false
+    state: stopped
+  when: ansible_facts.services['nftables.service']['state'] == "running" or ansible_facts.services['nftables.service']['state'] == "started"
+
+- name: Uninstall nftables package
+  become: true
+  ansible.builtin.package:
+    name: nftables
+    state: absent

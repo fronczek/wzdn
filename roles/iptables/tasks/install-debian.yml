@@ -1,0 +1,6 @@
+---
+- name: Install a iptables packages (Debian)
+  become: true
+  ansible.builtin.package:
+    name: ['iptables', 'iptables-persistent']
+    state: present

@@ -1,0 +1,9 @@
+---
+- name: Check that the /etc/iptables/rules.v4 exists (Debian)
+  stat:
+    path: /etc/iptables/rules.v4
+  register: stat_ipt_debian_result
+
+- name: Make iptables persistent (Debian)
+  become: true
+  shell: iptables-save > /etc/iptables/rules.v4

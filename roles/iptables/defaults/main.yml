@@ -1,0 +1,11 @@
+---
+# defaults file for os-iptables
+
+iptables_enabled: false
+iptables_debug: false
+iptables_uninstall_firewalld: true
+iptables_uninstall_nftables: true
+iptables_enable_logging: false
+iptables_debug_whitelists: false
+iptables_input_policy: "DROP"
+iptables_forward_policy: "DROP"

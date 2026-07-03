@@ -1,0 +1,108 @@
+# yamllint disable rule:line-length
+---
+- name: Build IP based whitelists
+  ansible.builtin.set_fact:
+    whitelists: |
+      {% set res = [] -%}
+      {% for value in iptables_attach_whitelist -%}
+          {% for value2 in value.list -%}
+            {% set ignored = res.extend([{'chain': value.chain, 'src': value2.src, 'comment': value2.desc, 'proto': value.proto, 'port': value.port, 'jump': value.jump}]) -%}
+          {%- endfor %}
+      {%- endfor %}
+      {{ res }}
+  when: iptables_attach_whitelist is defined
+
+- name: Show (debug) IP based whitelists
+  ansible.builtin.debug:
+    var: whitelists
+  when: iptables_debug_whitelists
+
+- name: Backup old IPtables
+  become: true
+  ansible.builtin.shell:
+    cmd: "iptables-save > /root/iptables.{{ ansible_facts['date_time']['epoch'] }}.bak"
+  environment:
+    PATH: '$PATH:/usr/sbin:/sbin'
+
+- name: Set the policy for the INPUT chain to ACCEPT (Anti-lockout rule)
+  become: true
+  ansible.builtin.iptables:
+    chain: INPUT
+    policy: ACCEPT
+
+- name: Set the policy for the OUTPUT chain to ACCEPT (Anti-lockout rule)
+  become: true
+  ansible.builtin.iptables:
+    chain: OUTPUT
+    policy: ACCEPT
+
+# Limited to INPUT chain to prevent touching docker rules and other chains that may be used by other services
+- name: Flush everything on INPUT chain
+  become: true
+  ansible.builtin.iptables:
+    flush: true
+    chain: INPUT
+
+- name: Add loopback ACCEPT
+  become: true
+  ansible.builtin.iptables:
+    chain: INPUT
+    in_interface: lo
+    jump: ACCEPT
+    comment: 'Allow loopback'
+
+- name: Add ICMP echo-request
+  become: true
+  ansible.builtin.iptables:
+    chain: INPUT
+    protocol: ICMP
+    icmp_type: echo-request
+    jump: ACCEPT
+    comment: 'Allow ping'
+
+- name: Add logging rule
+  become: true
+  ansible.builtin.iptables:
+    chain: INPUT
+    ctstate: NEW
+    jump: LOG
+    log_prefix: "iptables_info: "
+    log_level: info
+  when: iptables_enable_logging
+
+- name: Add ESTABLISHED and RELATED
+  become: true
+  ansible.builtin.iptables:
+    chain: INPUT
+    ctstate: ESTABLISHED,RELATED
+    jump: ACCEPT
+
+- name: Add iptables rules
+  become: true
+  ansible.builtin.iptables:
+    chain: "{{ item.chain }}"
+    in_interface: "{{ item.interface | default(omit) }}"
+    source: "{{ item.src | default('0.0.0.0/0') }}"
+    protocol: "{{ item.proto | default(omit) }}"
+    destination_port: "{{ item.port if item.port is defined and item.port is integer else omit }}"
+    destination_ports: "{{ item.ports if item.ports is defined and item.ports is string else omit }}"
+    comment: "{{ item.comment | default(omit) }}"
+    jump: "{{ item.jump }}"
+  with_items:
+    - { chain: INPUT, src: '{{ ansible_facts["default_ipv4"]["network"] }}/{{ ansible_facts["default_ipv4"]["prefix"] }}', jump: ACCEPT, comment: 'Allow local subnet' }
+    - "{{ iptables_global_rules | default([]) }}"
+    - "{{ iptables_group_rules | default([]) }}"
+    - "{{ iptables_host_rules | default([]) }}"
+    - "{{ whitelists | default([]) }}"
+
+- name: Set the policy for the FORWARD chain to {{ iptables_forward_policy }}
+  become: true
+  ansible.builtin.iptables:
+    chain: FORWARD
+    policy: "{{ iptables_forward_policy }}"
+
+- name: Set the policy for the INPUT chain back to {{ iptables_input_policy }}
+  become: true
+  ansible.builtin.iptables:
+    chain: INPUT
+    policy: "{{ iptables_input_policy }}"
