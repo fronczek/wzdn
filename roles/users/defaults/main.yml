@@ -1,0 +1,5 @@
+users_list:
+  - name: jdoe
+    comment: "John Doe"
+    shell: /bin/bash
+    groups: [wheel]

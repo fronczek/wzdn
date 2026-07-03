@@ -1,0 +1,32 @@
+- name: Install sudo package
+  become: true
+  ansible.builtin.package:
+    name: sudo
+    state: present
+
+- name: Ensure wheel group has sudo privileges without password
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/sudoers
+    state: present
+    regexp: '^%wheel'
+    line: '%wheel ALL=(ALL) NOPASSWD: ALL'
+
+- name: Create standard users
+  become: true
+  ansible.builtin.user:
+    name: "{{ item.name }}"
+    comment: "{{ item.comment }}"
+    shell: "{{ item.shell }}"
+    groups: "{{ item.groups | default(omit) }}"
+    state: present
+  loop: "{{ users_list }}"
+
+- name: Add authorized keys for standard users
+  become: true
+  ansible.posix.authorized_key:
+    user: "{{ item.name }}"
+    state: present
+    key: "{{ item.key }}"
+  loop: "{{ users_list | selectattr('key', 'defined') | list }}"
+  ignore_errors: "{{ check_mode | default(false) }}"
