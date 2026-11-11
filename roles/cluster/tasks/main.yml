@@ -1,0 +1,39 @@
+- name: Install cluster node packages
+  become: true
+  ansible.builtin.package:
+    name: "{{ cluster_packages_node }}"
+    state: present
+  when: "'node' in server_roles"
+
+- name: Install cluster qdevice packages
+  become: true
+  ansible.builtin.package:
+    name: "{{ cluster_packages_qdevice }}"
+    state: present
+  when: "'qdevice' in server_roles"
+
+- name: Set hacluster user password
+  become: true
+  ansible.builtin.user:
+    name: "{{ cluster_username | default('hacluster') }}"
+    password: "{{ cluster_password | password_hash('sha512') }}"
+
+- name: Enable pcsd
+  become: true
+  ansible.builtin.service:
+    name: pcsd
+    enabled: true
+    state: started
+
+- name: Include bootstrap cluster tasks
+  include_tasks: bootstrap.yml
+
+# - name: Check if we are already in a cluster
+#   become: true
+#   ansible.builtin.command:
+#     cmd: pcs status
+#   register: pcs_status
+#   ignore_errors: true
+#   when:
+#     - "'node' in server_roles"
+#     - stat_corosync_conf.stat.exists | bool

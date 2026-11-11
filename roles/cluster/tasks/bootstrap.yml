@@ -1,0 +1,74 @@
+- name: Check for existing corosync configuration file
+  ansible.builtin.stat:
+    path: /etc/corosync/corosync.conf
+  register: stat_corosync_conf
+
+- name: Build cluster_string variable
+  set_fact:
+    cluster_string: "{{ cluster_string | default('') + item.name + ' addr=' + item.ip + ' ' }}"
+  loop: "{{ cluster_nodes }}"
+
+- name: Build cluster_qdevice_string variable
+  set_fact:
+    cluster_qdevice_string: "{{ cluster_qdevice_string | default('') + item.name + ' addr=' + item.ip + ' ' }}"
+  loop: "{{ cluster_qdevices }}"
+
+- name: Show cluster_string variable
+  debug:
+    msg:
+      - "Cluster string: {{ cluster_string }}"
+      - "Cluster qdevice string: {{ cluster_qdevice_string }}"
+
+- name: Authencitate cluster nodes
+  become: true
+  ansible.builtin.command:
+    cmd: pcs host auth -u {{ cluster_username }} -p '{{ cluster_password }}' {{ cluster_string }}
+  run_once: true
+  delegate_to: "{{ cluster_nodes[0].name }}"
+  when:
+    - not stat_corosync_conf.stat.exists | bool
+
+- name: Boostrap cluster
+  become: true
+  ansible.builtin.command:
+    cmd: pcs cluster setup {{ cluster_name }} {{ cluster_string }}
+  run_once: true
+  delegate_to: "{{ cluster_nodes[0].name }}"
+  when:
+    - not stat_corosync_conf.stat.exists | bool
+
+- name: Authencitate qdevices
+  become: true
+  ansible.builtin.command:
+    cmd: pcs host auth -u {{ cluster_username }} -p '{{ cluster_password }}' {{ cluster_qdevice_string }}
+  run_once: true
+  delegate_to: "{{ cluster_nodes[0].name }}"
+
+- name: Setup qdevice
+  become: true
+  ansible.builtin.command:
+    cmd: pcs qdevice setup model net --enable --start
+  register: qdevice_result
+  when:
+    - "'qdevice' in server_roles"
+  changed_when: "'quorum device started' in qdevice_result.stdout"
+  failed_when:
+    - "'already initialized' not in qdevice_result.stderr"
+    - qdevice_result.rc != 0
+
+- name: Add qdevice to cluster
+  become: true
+  ansible.builtin.command:
+    cmd: pcs quorum device add model net host={{ item.name }} algorithm=ffsplit
+  loop: "{{ cluster_qdevices }}"
+  run_once: true
+  delegate_to: "{{ cluster_nodes[0].name }}"
+  register: add_qdevice_result
+  changed_when: "'already defined' not in add_qdevice_result.stderr"
+  failed_when:
+    - "'already defined' not in add_qdevice_result.stderr"
+    - add_qdevice_result.rc != 0
+
+
+# pcs cluster start --all
+# pcs cluster enable --all

@@ -1,0 +1,11 @@
+cluster_packages_node:
+  - corosync
+  - corosync-qdevice
+  - pacemaker
+  - pcs
+  - fence-agents-all
+  - resource-agents
+
+cluster_packages_qdevice:
+  - corosync-qnetd
+  - pcs

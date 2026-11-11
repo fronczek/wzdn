@@ -1,0 +1,34 @@
+iptables_group_rules:
+
+  - { chain: INPUT, src: '172.16.11.171',  proto: tcp, port: 2224, jump: ACCEPT, comment: 'pcsd' }
+  - { chain: INPUT, src: '172.16.11.171',  proto: tcp, port: 5403, jump: ACCEPT, comment: 'Corosync qnetd' }
+  - { chain: INPUT, src: '172.16.11.171',  proto: udp, port: 5404, jump: ACCEPT, comment: 'Corosync multicast' }
+  - { chain: INPUT, src: '172.16.11.171',  proto: udp, port: 5405, jump: ACCEPT, comment: 'Corosync unicast' }
+
+  - { chain: INPUT, src: '172.16.11.172',  proto: tcp, port: 2224, jump: ACCEPT, comment: 'pcsd' }
+  - { chain: INPUT, src: '172.16.11.172',  proto: tcp, port: 5403, jump: ACCEPT, comment: 'Corosync qnetd' }
+  - { chain: INPUT, src: '172.16.11.172',  proto: udp, port: 5404, jump: ACCEPT, comment: 'Corosync multicast' }
+  - { chain: INPUT, src: '172.16.11.172',  proto: udp, port: 5405, jump: ACCEPT, comment: 'Corosync unicast' }
+
+  - { chain: INPUT, src: '172.16.11.173',  proto: tcp, port: 2224, jump: ACCEPT, comment: 'pcsd' }
+  - { chain: INPUT, src: '172.16.11.173',  proto: tcp, port: 5403, jump: ACCEPT, comment: 'Corosync qnetd' }
+  - { chain: INPUT, src: '172.16.11.173',  proto: udp, port: 5404, jump: ACCEPT, comment: 'Corosync multicast' }
+  - { chain: INPUT, src: '172.16.11.173',  proto: udp, port: 5405, jump: ACCEPT, comment: 'Corosync unicast' }
+
+cluster_name: "wzdn-ha"
+cluster_username: "hacluster"
+
+cluster_password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          38643930333231386662333762376231333839616566353035616562376139316533323130636563
+          6337393738383631373235663939306266343133313236660a653366353030343164363939626366
+          62313938396664376235366231636536366635376332633933366330663935666232646435343736
+          3934336462323732320a633462653463303933323930313838376138383938356665653166643564
+          6539
+
+cluster_nodes:
+  - { name: ol9a, ip: 172.16.11.171 }
+  - { name: ol9b, ip: 172.16.11.172 }
+
+cluster_qdevices:
+  - { name: ol9c, ip: 172.16.11.173 }
